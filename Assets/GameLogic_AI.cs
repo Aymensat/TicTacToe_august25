@@ -6,10 +6,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameLogic : MonoBehaviour
+public class GameLogic_AI : MonoBehaviour
 
 {
     public LineRenderer line;
+    public AI_playing myAI;
 
     public Button[] cellButtons;
     public Sprite xSprite;
@@ -37,11 +38,13 @@ public class GameLogic : MonoBehaviour
     int last_clickled_row = -1;
     int last_clickled_col = -1;
 
-
+    bool preferStarting; 
     void Start()
     {
+        preferStarting = true;
         GameReset();
         ScoreReset();
+        
     }
 
     // Update is called once per frame
@@ -53,56 +56,49 @@ public class GameLogic : MonoBehaviour
 
     public void OnCellClicked(int grid)
     {
+        if (preferStarting && currentPlayer == 'X' || !preferStarting && currentPlayer == 'O')
 
-
-        last_clickled_row = grid / 3;
-        last_clickled_col = grid % 3;
-
-        //logic here 
-
-        if (ValidMove(last_clickled_row, last_clickled_col))
         {
 
-            Button clickedButton = cellButtons[grid];
-            Image buttonImage = clickedButton.GetComponent<Image>();
+            Debug.Log("we are playing human even tho  preferStarting = " + preferStarting + "currentPlayer = " + currentPlayer );
 
-            buttonImage.sprite = (currentPlayer == 'X') ? xSprite : oSprite;
+            last_clickled_row = grid / 3;
+            last_clickled_col = grid % 3;
 
+            //logic here 
 
-            clickedButton.interactable = false;
-
-            G[last_clickled_row][last_clickled_col] = (currentPlayer == 'X') ? 1 : -1;
-
-
-            currentGameState = CheckGameState();
-            Debug.Log(currentGameState);
-
-
-
-
-            if (currentGameState == "X" || currentGameState == "O")
+            if (ValidMove(last_clickled_row, last_clickled_col))
             {
 
-                Vector3[] v = GetWinningPoints();
-                DrawLine(v[0], v[1]);
+                Button clickedButton = cellButtons[grid];
+                Image buttonImage = clickedButton.GetComponent<Image>();
 
-                if (currentGameState == "X") X_Score++;
-                else O_Score++;
+                buttonImage.sprite = (currentPlayer == 'X') ? xSprite : oSprite;
 
-                ScoreDisplay.UpdateScoreDisplay(X_Score, O_Score);
+
+                clickedButton.interactable = false;
+
+                G[last_clickled_row][last_clickled_col] = (currentPlayer == 'X') ? 1 : -1;
+
+
+                CheckDrawingLine();
+
+                if(currentGameState=="Pending")
+                {currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+
+                    play(myAI);
+                }
+
             }
-         
-            currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+
+
+
+            //else meaning : move not valid ( exsiting square ) 
+            else { } // i dont i will add this later as the button is already not interactable 
         }
-
-
-
-        //else meaning : move not valid ( exsiting square ) 
-        else { } // i dont i will add this later as the button is already not interactable 
-
+       
             
     }
-    
 
 
 
@@ -128,8 +124,15 @@ public class GameLogic : MonoBehaviour
         winning_direction = null;
         winning_coord = -1;
         currentGameState = "Pending";
+        // intended no score reset 
 
-           // intended no score reset 
+        if (!preferStarting)
+        {
+            Debug.Log("MY BOY WANTS TO PLAY"); 
+
+            play(myAI); 
+        }
+
     }
 
     public void ScoreReset()
@@ -140,12 +143,26 @@ public class GameLogic : MonoBehaviour
 
     }
 
-
+            
     public void GoToMainMenu()
     {
 
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("MainMenu"); 
 
+    }
+
+    public void WhoStart(int k)
+    {
+        preferStarting = (k ==0 ) ? true : false;
+    }
+
+    
+    public void SwitchWhoStart(bool p)
+    {
+        preferStarting = p;
+        Debug.Log(preferStarting);
+        GameReset();
+        ScoreReset();
     }
 
 
@@ -258,8 +275,57 @@ public class GameLogic : MonoBehaviour
         return s;
     }
 
-    
 
 
+    private void play(AI_playing myAI)
+    {
+        int tmp;
+        tmp = (preferStarting == true) ? -1 : 1;
+        myAI.MyMinMax(G , tmp);
+
+        Debug.Log("Ai best move is " + myAI.besMove);
+
+        int grid = myAI.besMove[0]*3 + myAI.besMove[1];
+
+        Button clickedButton = cellButtons[grid];
+        Image buttonImage = clickedButton.GetComponent<Image>();
+
+        buttonImage.sprite = (currentPlayer == 'X') ? xSprite : oSprite;
+
+
+        clickedButton.interactable = false;
+
+        G[myAI.besMove[0]][myAI.besMove[1]] = (currentPlayer == 'X') ? 1 : -1;
+
+        CheckDrawingLine();
+
+        currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+
+    }
+
+
+
+
+
+    private void CheckDrawingLine()
+    {
+        currentGameState = CheckGameState();
+        Debug.Log(currentGameState);
+
+
+
+
+        if (currentGameState == "X" || currentGameState == "O")
+        {
+
+            Vector3[] v = GetWinningPoints();
+            DrawLine(v[0], v[1]);
+
+            if (currentGameState == "X") X_Score++;
+            else O_Score++;
+
+            ScoreDisplay.UpdateScoreDisplay(X_Score, O_Score);
+        }
+    }
 
 }

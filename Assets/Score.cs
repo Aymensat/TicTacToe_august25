@@ -12,8 +12,8 @@ public class Score : MonoBehaviour
 
     void Start()
     {
-        X_ScoreText.text = "";
-        O_ScoreText.text = "";
+        X_ScoreText.text = "0";
+        O_ScoreText.text = "0";
     }
 
     public void UpdateScoreDisplay(int x, int o)
