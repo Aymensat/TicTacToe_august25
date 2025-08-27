@@ -1,7 +1,9 @@
-##tic tac toe game with :
-  AI mode ( MinMax algo) 
-  1V1 mode
-  Score tracking
-  UI/Canvas based
+## Tic Tac Toe Game
 
-for those reading code sry for naming typos
+Features:
+- **AI mode** powered by a MinMax algorithm  
+- **1v1 mode** for local multiplayer  
+- **Score tracking** to keep tabs on wins and losses  
+- **Canvas-based UI** for a clean, interactive experience  
+
+*Apologies for some naming typos in the code.*
